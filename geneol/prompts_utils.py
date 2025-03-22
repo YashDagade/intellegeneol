@@ -85,6 +85,10 @@ def get_neg_prompt(version, input_text):
 
 
 def get_diverse_prompt_fs(input_text):
+    """
+    FS stands for 'Few-Shot'. This function generates a prompt for producing diverse outputs 
+    based on a given input text using few-shot learning techniques.
+    """
     text = f"""Make changes to the following sentence to output 10 diverse sentences. Following are some directions for the changes.
 1. Paraphrase the input sentence or phrase, providing an alternative expression with the same meaning.
 2. Rewrite the input sentence or phrase using different sentence structure and different words while preserving its original meaning.

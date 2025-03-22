@@ -1,0 +1,100 @@
+8274509
+Dataset at index 6: STS22: 
+The following values were not passed to `accelerate launch` and had defaults used instead:
+	`--num_processes` was set to a value of `1`
+	`--num_machines` was set to a value of `1`
+	`--mixed_precision` was set to a value of `'no'`
+	`--dynamo_backend` was set to a value of `'no'`
+To avoid this warning pass in values for each of the problematic parameters or run `accelerate config`.
+/home/users/yd211/.local/lib/python3.10/site-packages/mteb/evaluation/MTEB.py:110: UserWarning: The `task_langs` argument is deprecated and will be removed in the 2.0 release. Please use `tasks = mteb.get_tasks(... languages = [...])` to filter tasks instead. Note that this uses 3 letter language codes (ISO 639-3).
+  warnings.warn(
+/home/users/yd211/.local/lib/python3.10/site-packages/mteb/evaluation/MTEB.py:121: UserWarning: Passing task names as strings is deprecated and will be removed in 2.0 release. Please use `tasks = mteb.get_tasks(tasks=[...])` method to get tasks instead.
+  warnings.warn(
+WARNING:mteb.models.overview:Failed to extract metadata from model: 'GenEOL' object has no attribute 'model_card_data'. Upgrading to sentence-transformers v3.0.0 or above is recommended.
+─────────────────────────────── Selected tasks  ────────────────────────────────
+STS
+    - STS22, p2p, multilingual 1 / 18 Subsets
+
+
+WARNING:mteb.abstasks.AbsTask:Dataset 'STS22' is superseded by 'STS22.v2', you might consider using the newer version of the dataset.
+STS22
+Downloading shards:   0%|          | 0/4 [00:00<?, ?it/s]Downloading shards:  25%|██▌       | 1/4 [01:10<03:32, 70.90s/it]Downloading shards:  75%|███████▌  | 3/4 [01:47<00:31, 31.77s/it]Downloading shards: 100%|██████████| 4/4 [02:28<00:00, 34.99s/it]Downloading shards: 100%|██████████| 4/4 [02:28<00:00, 37.03s/it]
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards:  25%|██▌       | 1/4 [00:21<01:05, 21.87s/it]Loading checkpoint shards:  50%|█████     | 2/4 [00:43<00:43, 21.94s/it]Loading checkpoint shards:  75%|███████▌  | 3/4 [01:06<00:22, 22.08s/it]Loading checkpoint shards: 100%|██████████| 4/4 [01:11<00:00, 15.36s/it]Loading checkpoint shards: 100%|██████████| 4/4 [01:11<00:00, 17.79s/it]
+Created meta-llama/Llama-3.1-8B-Instruct: torch.bfloat16 dtype
+Set pad token to eos token: <|eot_id|>
+./resultsTF/llama_ethan_run_s5_Llama-3.1-8B-Instruct_1_2/Mistral-7B-v0.1/../transformations
+process id 0
+Batches:   0%|          | 0/197 [00:00<?, ?it/s]Setting `pad_token_id` to `eos_token_id`:128001 for open-end generation.
+Batches:   1%|          | 1/197 [00:05<18:01,  5.52s/it]Setting `pad_token_id` to `eos_token_id`:128001 for open-end generation.
+Batches:   1%|          | 2/197 [00:22<39:24, 12.12s/it]Setting `pad_token_id` to `eos_token_id`:128001 for open-end generation.
+Batches:   2%|▏         | 3/197 [00:50<1:02:15, 19.26s/it]Setting `pad_token_id` to `eos_token_id`:128001 for open-end generation.
+Batches:   2%|▏         | 4/197 [01:00<50:30, 15.70s/it]  Setting `pad_token_id` to `eos_token_id`:128001 for open-end generation.
+Batches:   3%|▎         | 5/197 [01:05<38:10, 11.93s/it]Setting `pad_token_id` to `eos_token_id`:128001 for open-end generation.
+Batches:   3%|▎         | 6/197 [01:53<1:17:05, 24.22s/it]Setting `pad_token_id` to `eos_token_id`:128001 for open-end generation.
+Batches:   4%|▎         | 7/197 [02:17<1:16:20, 24.11s/it]Setting `pad_token_id` to `eos_token_id`:128001 for open-end generation.
+Batches:   4%|▍         | 8/197 [02:20<54:38, 17.34s/it]  Setting `pad_token_id` to `eos_token_id`:128001 for open-end generation.
+Batches:   5%|▍         | 9/197 [02:30<47:33, 15.18s/it]Setting `pad_token_id` to `eos_token_id`:128001 for open-end generation.
+Batches:   5%|▌         | 10/197 [02:44<46:07, 14.80s/it]Setting `pad_token_id` to `eos_token_id`:128001 for open-end generation.
+Batches:   6%|▌         | 11/197 [02:51<38:35, 12.45s/it]Setting `pad_token_id` to `eos_token_id`:128001 for open-end generation.
+Batches:   6%|▌         | 12/197 [03:05<39:29, 12.81s/it]Setting `pad_token_id` to `eos_token_id`:128001 for open-end generation.
+Batches:   7%|▋         | 13/197 [03:29<49:57, 16.29s/it]Setting `pad_token_id` to `eos_token_id`:128001 for open-end generation.
+Batches:   7%|▋         | 14/197 [03:37<41:28, 13.60s/it]Setting `pad_token_id` to `eos_token_id`:128001 for open-end generation.
+Batches:   8%|▊         | 15/197 [04:08<57:09, 18.84s/it]Setting `pad_token_id` to `eos_token_id`:128001 for open-end generation.
+Batches:   8%|▊         | 16/197 [04:17<48:40, 16.14s/it]Setting `pad_token_id` to `eos_token_id`:128001 for open-end generation.
+Batches:   9%|▊         | 17/197 [04:29<44:11, 14.73s/it]Setting `pad_token_id` to `eos_token_id`:128001 for open-end generation.
+Batches:   9%|▉         | 18/197 [04:55<54:03, 18.12s/it]Setting `pad_token_id` to `eos_token_id`:128001 for open-end generation.
+Batches:  10%|▉         | 19/197 [05:17<57:02, 19.23s/it]Setting `pad_token_id` to `eos_token_id`:128001 for open-end generation.
+Batches:  10%|█         | 20/197 [05:34<55:14, 18.72s/it]Setting `pad_token_id` to `eos_token_id`:128001 for open-end generation.
+Batches:  11%|█         | 21/197 [06:03<1:03:40, 21.70s/it]Setting `pad_token_id` to `eos_token_id`:128001 for open-end generation.
+Batches:  11%|█         | 22/197 [07:10<1:42:52, 35.27s/it]Setting `pad_token_id` to `eos_token_id`:128001 for open-end generation.
+Batches:  12%|█▏        | 23/197 [07:31<1:29:35, 30.90s/it]Setting `pad_token_id` to `eos_token_id`:128001 for open-end generation.
+Batches:  12%|█▏        | 24/197 [07:39<1:09:19, 24.04s/it]Setting `pad_token_id` to `eos_token_id`:128001 for open-end generation.
+Batches:  13%|█▎        | 25/197 [08:00<1:06:19, 23.14s/it]Setting `pad_token_id` to `eos_token_id`:128001 for open-end generation.
+Batches:  13%|█▎        | 26/197 [08:10<55:12, 19.37s/it]  Setting `pad_token_id` to `eos_token_id`:128001 for open-end generation.
+Batches:  14%|█▎        | 27/197 [08:14<41:14, 14.55s/it]Setting `pad_token_id` to `eos_token_id`:128001 for open-end generation.
+Batches:  14%|█▍        | 28/197 [08:30<42:57, 15.25s/it]Setting `pad_token_id` to `eos_token_id`:128001 for open-end generation.
+Batches:  15%|█▍        | 29/197 [08:47<44:02, 15.73s/it]Setting `pad_token_id` to `eos_token_id`:128001 for open-end generation.
+Batches:  15%|█▌        | 30/197 [08:54<36:25, 13.09s/it]Setting `pad_token_id` to `eos_token_id`:128001 for open-end generation.
+Batches:  16%|█▌        | 31/197 [09:04<33:23, 12.07s/it]Setting `pad_token_id` to `eos_token_id`:128001 for open-end generation.
+Batches:  16%|█▌        | 32/197 [09:25<40:22, 14.68s/it]Setting `pad_token_id` to `eos_token_id`:128001 for open-end generation.
+Batches:  17%|█▋        | 33/197 [09:34<35:34, 13.02s/it]Setting `pad_token_id` to `eos_token_id`:128001 for open-end generation.
+Batches:  17%|█▋        | 33/197 [09:34<47:34, 17.40s/it]
+ERROR:mteb.evaluation.MTEB:Error while evaluating STS22: Input length of input_ids is 3072, but `max_length` is set to 3072. This can lead to unexpected behavior. You should consider increasing `max_length` or, better yet, setting `max_new_tokens`.
+Traceback (most recent call last):
+  File "/usr/project/xtmp/yd211/Documents/IntelleGENeol/eval_mteb_GenEOL.py", line 148, in <module>
+    evaluation.run(model, output_folder=output_folder, eval_splits=eval_splits, overwrite_results=args.reeval)
+  File "/home/users/yd211/.local/lib/python3.10/site-packages/mteb/evaluation/MTEB.py", line 673, in run
+    raise e
+  File "/home/users/yd211/.local/lib/python3.10/site-packages/mteb/evaluation/MTEB.py", line 626, in run
+    results, tick, tock = self._run_eval(
+  File "/home/users/yd211/.local/lib/python3.10/site-packages/mteb/evaluation/MTEB.py", line 308, in _run_eval
+    results = task.evaluate(
+  File "/home/users/yd211/.local/lib/python3.10/site-packages/mteb/abstasks/AbsTask.py", line 137, in evaluate
+    scores[hf_subset] = self._evaluate_subset(
+  File "/home/users/yd211/.local/lib/python3.10/site-packages/mteb/abstasks/AbsTaskSTS.py", line 88, in _evaluate_subset
+    scores = evaluator(model, encode_kwargs=encode_kwargs)
+  File "/home/users/yd211/.local/lib/python3.10/site-packages/mteb/evaluation/evaluators/STSEvaluator.py", line 47, in __call__
+    embeddings1 = model.encode(
+  File "/home/users/yd211/.local/lib/python3.10/site-packages/torch/utils/_contextlib.py", line 116, in decorate_context
+    return func(*args, **kwargs)
+  File "/usr/project/xtmp/yd211/Documents/IntelleGENeol/geneol/geneol.py", line 333, in encode
+    outputs = self.llm.generate(instructions_inputs_batch)
+  File "/usr/project/xtmp/yd211/Documents/IntelleGENeol/geneol/geneol.py", line 94, in generate
+    output = self.model.generate(
+  File "/home/users/yd211/.local/lib/python3.10/site-packages/torch/utils/_contextlib.py", line 116, in decorate_context
+    return func(*args, **kwargs)
+  File "/home/users/yd211/.local/lib/python3.10/site-packages/transformers/generation/utils.py", line 2079, in generate
+    self._validate_generated_length(generation_config, input_ids_length, has_default_max_length)
+  File "/home/users/yd211/.local/lib/python3.10/site-packages/transformers/generation/utils.py", line 1416, in _validate_generated_length
+    raise ValueError(
+ValueError: Input length of input_ids is 3072, but `max_length` is set to 3072. This can lead to unexpected behavior. You should consider increasing `max_length` or, better yet, setting `max_new_tokens`.
+Traceback (most recent call last):
+  File "/home/users/yd211/anaconda3/envs/geneeol/bin/accelerate", line 8, in <module>
+    sys.exit(main())
+  File "/home/users/yd211/anaconda3/envs/geneeol/lib/python3.10/site-packages/accelerate/commands/accelerate_cli.py", line 47, in main
+    args.func(args)
+  File "/home/users/yd211/anaconda3/envs/geneeol/lib/python3.10/site-packages/accelerate/commands/launch.py", line 1023, in launch_command
+    simple_launcher(args)
+  File "/home/users/yd211/anaconda3/envs/geneeol/lib/python3.10/site-packages/accelerate/commands/launch.py", line 643, in simple_launcher
+    raise subprocess.CalledProcessError(returncode=process.returncode, cmd=cmd)
+subprocess.CalledProcessError: Command '['/home/users/yd211/anaconda3/envs/geneeol/bin/python', 'eval_mteb_GenEOL.py', '--suffix', 'llama_ethan_run', '--method', 's5', '--gen_model_name_or_path', 'meta-llama/Llama-3.1-8B-Instruct', '--model_name_or_path', 'mistralai/Mistral-7B-v0.1', '--batch_size', '1', '--num_gens', '2', '--task_names', 'STS22', '--compositional', '--select', '24', '--seed', '42']' returned non-zero exit status 1.
