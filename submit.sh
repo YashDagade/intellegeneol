@@ -10,7 +10,7 @@ seed_values=(42)
 
 # Models and their corresponding output subdirectories
 declare -A models
-models["mistralai/Mistral-7B-v0.1"]="mistral0.1"
+models["mistralai/Mistral-7B-v0.1"]="mistral0.1" # this is the embedding model
 # models["meta-llama/Meta-Llama-3-8B"]="llama3"
 
 # Base directories and other parameters
@@ -21,11 +21,11 @@ array="0-8%10"
 gres="gpu:a5000:1"
 ntasks=1
 mem="40gb"
-model_1="meta-llama/Llama-3.1-8B-Instruct"
+model_1="mistralai/Mistral-7B-Instruct-v0.1"
 task_name="llama_ethan_run"
 session="s5"
 gpu_count=1
-task_per_node=2
+task_per_node=2 # this is m - we need to change this to be optimal
 
 # Outer loop: iterate over the models
 for model_2 in "${!models[@]}"; do

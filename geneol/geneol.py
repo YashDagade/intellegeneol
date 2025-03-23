@@ -34,16 +34,16 @@ from .openai_keys import *
 
 
 
-class LLM:
+class LLM: # it's not inheriting from torch.nn.Module, so .generate is sperately dfined
 
     def __init__(self, accelerator=None, args=None):
         self.args = args
         self.accelerator = accelerator
-        self.model=None
+        self.model=None # this is most likely a model of type AutoModelForCausalLM? idk
         self.tokenizer=None
         self.ltokenizer=None
         
-    # generate positives/negatives
+    # generate positives/negatives - used for the generation of the new sentences
     def generate(self, instructions_inputs_batch):
         if 'gpt' in self.args.gen_model_name_or_path:
             outputs=[]
@@ -73,11 +73,11 @@ class LLM:
                 outputs.extend([each_gen["message"]["content"] for each_gen in response["choices"]])
             return outputs
         else:
-            if(len(instructions_inputs_batch)>=4):
+            if(len(instructions_inputs_batch)>=4): #okay so we are just putting 4 sentences throuhgh the LM at a time here
                 # import ipdb; ipdb.set_trace()
                 # Assuming 'instructions_inputs_batch' is a list of inputs
 
-                batch_size = 4
+                batch_size = 4 #so thes are teh transformations we are doing here
                 final_outputs = []
 
                 # Split the instructions_inputs_batch into chunks of size 8
@@ -136,7 +136,7 @@ class LLM:
         return outputs
 
     # embedd using generations
-    def embed(self, new_sentences_batch):
+    def embed(self, new_sentences_batch): # this is used for the embedding of the new sentences
 
 
         inputs = self.tokenizer(new_sentences_batch, padding=True, truncation=True, return_tensors='pt',
@@ -173,7 +173,7 @@ class LLM:
 
     def switchon_gen_model(self):
         
-        if self.args.method=='b5':
+        if self.args.method=='b5': 
             return
 
         if 'gpt' in self.args.gen_model_name_or_path:
@@ -197,7 +197,8 @@ class LLM:
                 self.gtemp=0.6
                 self.top_p=0.9
             else:
-                assert False, "Model not accepted"
+                self.gtemp=0.8
+                self.top_p=0.95
 
             self.embedding_attr = 'model'
             self.device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
@@ -230,7 +231,8 @@ class LLM:
             self.gtemp=0.6
             self.top_p=0.9
         else:
-            assert False, "Model not accepted"
+            self.gtemp=0.8
+            self.top_p=0.95
 
         self.embedding_attr = 'model'
         self.device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
@@ -313,10 +315,10 @@ class GenEOL(torch.nn.Module):
             all_new_sentences_batch = []
             #! important to reduce size for all methods equally.
             # sentences_rank = self.llm.tokenizer.batch_decode(self.llm.tokenizer(sentences_rank_unchopped, max_length=args.max_length, truncation=True, add_special_tokens=False).input_ids)
-            sentences_rank = sentences_rank_unchopped
+            sentences_rank = sentences_rank_unchopped # this is the list of sentences that we are going to encode
 
             #! >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> PART 1
-            if(not os.path.exists(f"{save_path}/{args.task}_sentences{self.encode_call}_{self.accelerator.process_index}.json")):
+            if(not os.path.exists(f"{save_path}/{args.task}_sentences{self.encode_call}_{self.accelerator.process_index}.json")): 
                 print("process id", self.accelerator.process_index, flush=True)
 
                 
@@ -327,7 +329,7 @@ class GenEOL(torch.nn.Module):
                     if(args.method=='s5'):
                         for s in sentences_batch:
                             instructions_inputs_batch.extend([get_pos_prompt(1, s), get_pos_prompt(2, s), get_pos_prompt(3, s), get_pos_prompt(4, s)])
-                        total_num_gens=args.num_gens*4
+                        total_num_gens=args.num_gens*4 # reason times 4 because we are using 4 different prompts
 
                         #! call LLM here
                         outputs = self.llm.generate(instructions_inputs_batch)
@@ -349,7 +351,7 @@ class GenEOL(torch.nn.Module):
                         # for idx in range(len(sentences_batch)):
                         #     new_sentences_batch.append(sentences_batch[idx])
                         #     new_sentences_batch.extend(outputs[total_num_gens*idx:total_num_gens*(idx+1)])
-                        total_num_gens=args.num_gens*10
+                        total_num_gens=args.num_gens*10 # reason times 10 because we are using 10 different prompts
                         new_sentences_batch = []
                         for idx in range(len(sentences_batch)):
                             new_sentences_batch.append(sentences_batch[idx])
