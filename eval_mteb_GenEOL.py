@@ -37,7 +37,7 @@ def get_args():
     parser.add_argument('--task_types', default=None, help="Comma separated. Default is None i.e. running all tasks")
     parser.add_argument('--task_names', default=None, help="Comma separated. Default is None i.e. running all tasks")
     parser.add_argument('--batch_size', default=64, type=int)
-    parser.add_argument('--max_length', default=1024, type=int)
+    parser.add_argument('--max_length', default=2048, type=int)
     parser.add_argument('--dtype', default='bfloat16', type=str)
     parser.add_argument('--output_folder', default=None, type=str)
     parser.add_argument('--overwrite_results', action='store_true')

@@ -7,11 +7,9 @@ run_id,embedding_model,experiment,method,gen_model,batch_size,num_gens,dataset,p
 1014AB2_comp2_s5_Mistral-7B-Instruct-v0.1_1_2,Mistral-7B-v0.1,1014AB2_comp2,s5,Mistral-7B-Instruct-v0.1,1,2,STS12,0.769011,0.696361,0.769011,0.696361,0.771051,0.72266,0.753913,0.709558,0.696361
 1014AB2_comp2_s5_Mistral-7B-Instruct-v0.1_1_2,Mistral-7B-v0.1,1014AB2_comp2,s5,Mistral-7B-Instruct-v0.1,1,2,STS14,0.798676,0.776004,0.798676,0.776004,0.801085,0.785024,0.791526,0.775513,0.776004
 1014AB2_comp2_s5_Mistral-7B-Instruct-v0.1_1_2,Mistral-7B-v0.1,1014AB2_comp2,s5,Mistral-7B-Instruct-v0.1,1,2,SICK-R,0.776822,0.765485,0.776822,0.765485,0.781813,0.772876,0.767137,0.761976,0.765485
-llama_ethan_run_s5_Llama-3.1-8B-Instruct_1_2,Mistral-7B-v0.1,llama_ethan_run,s5,Llama-3.1-8B-Instruct,1,2,STS17,0.823637,0.83658,0.823637,0.83658,0.855907,0.843925,0.850067,0.837424,0.83658
-llama_ethan_run_s5_Llama-3.1-8B-Instruct_1_2,Mistral-7B-v0.1,llama_ethan_run,s5,Llama-3.1-8B-Instruct,1,2,STSBenchmark,0.779294,0.788608,0.779294,0.788608,0.801469,0.794616,0.791026,0.786795,0.788608
-llama_ethan_run_s5_Llama-3.1-8B-Instruct_1_2,Mistral-7B-v0.1,llama_ethan_run,s5,Llama-3.1-8B-Instruct,1,2,STS13,0.813107,0.825289,0.813107,0.825289,0.832116,0.834931,0.825078,0.828152,0.825289
-llama_ethan_run_s5_Llama-3.1-8B-Instruct_1_2,Mistral-7B-v0.1,llama_ethan_run,s5,Llama-3.1-8B-Instruct,1,2,STS16,0.768903,0.803927,0.768903,0.803927,0.808429,0.810445,0.801839,0.806221,0.803927
-llama_ethan_run_s5_Llama-3.1-8B-Instruct_1_2,Mistral-7B-v0.1,llama_ethan_run,s5,Llama-3.1-8B-Instruct,1,2,STS15,0.79622,0.813974,0.79622,0.813974,0.814624,0.815998,0.806201,0.807971,0.813974
-llama_ethan_run_s5_Llama-3.1-8B-Instruct_1_2,Mistral-7B-v0.1,llama_ethan_run,s5,Llama-3.1-8B-Instruct,1,2,STS12,0.741986,0.655104,0.741986,0.655104,0.747131,0.679302,0.731325,0.668188,0.655104
-llama_ethan_run_s5_Llama-3.1-8B-Instruct_1_2,Mistral-7B-v0.1,llama_ethan_run,s5,Llama-3.1-8B-Instruct,1,2,STS14,0.797986,0.767385,0.797986,0.767385,0.80437,0.779289,0.796677,0.77204,0.767385
-llama_ethan_run_s5_Llama-3.1-8B-Instruct_1_2,Mistral-7B-v0.1,llama_ethan_run,s5,Llama-3.1-8B-Instruct,1,2,SICK-R,0.767436,0.768061,0.767436,0.768061,0.779771,0.775848,0.767328,0.767231,0.768061
+intellegeneol_t1_Mistral-7B-Instruct-v0.1_1_1,Mistral-7B-v0.1,intellegeneol,t1,Mistral-7B-Instruct-v0.1,1,1,STS17,0.795904,0.81124,0.795904,0.81124,0.830184,0.832302,0.806406,0.811571,0.81124
+intellegeneol_t1_Mistral-7B-Instruct-v0.1_1_1,Mistral-7B-v0.1,intellegeneol,t1,Mistral-7B-Instruct-v0.1,1,1,STS16,0.736512,0.764869,0.736512,0.764869,0.780374,0.788977,0.765058,0.775264,0.764869
+intellegeneol_t1_Mistral-7B-Instruct-v0.1_1_1,Mistral-7B-v0.1,intellegeneol,t1,Mistral-7B-Instruct-v0.1,1,1,STSBenchmark,0.755464,0.744178,0.755464,0.744178,0.77216,0.760356,0.755541,0.745752,0.744178
+intellegeneol_t1_Mistral-7B-Instruct-v0.1_1_1,Mistral-7B-v0.1,intellegeneol,t1,Mistral-7B-Instruct-v0.1,1,1,STS13,0.780375,0.78097,0.780375,0.78097,0.809632,0.811146,0.791722,0.793869,0.78097
+intellegeneol_t1_Mistral-7B-Instruct-v0.1_1_1,Mistral-7B-v0.1,intellegeneol,t1,Mistral-7B-Instruct-v0.1,1,1,STS15,0.775888,0.788521,0.775888,0.788521,0.794742,0.79948,0.777244,0.782094,0.788521
+intellegeneol_t1_Mistral-7B-Instruct-v0.1_1_1,Mistral-7B-v0.1,intellegeneol,t1,Mistral-7B-Instruct-v0.1,1,1,STS12,0.697921,0.575225,0.697921,0.575225,0.708906,0.627981,0.6764,0.598327,0.575225

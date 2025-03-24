@@ -87,14 +87,14 @@ class LLM: # it's not inheriting from torch.nn.Module, so .generate is sperately
                     # Tokenize and send to model
                     inputs = self.ltokenizer.apply_chat_template(
                         batch, padding=True, truncation=True, 
-                        max_length=3*self.args.max_length, return_tensors="pt", return_dict=True
+                        max_length=self.args.max_length, return_tensors="pt", return_dict=True
                     ).to("cuda")
                     
                     # Generate output
                     output = self.model.generate(
                         **inputs, do_sample=True, num_return_sequences=self.args.num_gens, 
                         temperature=self.gtemp, repetition_penalty=1.0, 
-                        top_p=self.top_p, max_length=3*self.args.max_length, 
+                        top_p=self.top_p, max_new_tokens=512, 
                         return_dict_in_generate=True
                     )
                     
@@ -122,8 +122,8 @@ class LLM: # it's not inheriting from torch.nn.Module, so .generate is sperately
                 outputs=final_outputs
 
             else:    
-                inputs = self.ltokenizer.apply_chat_template(instructions_inputs_batch, padding=True, truncation=True, max_length=3*self.args.max_length, return_tensors="pt", return_dict=True).to("cuda")
-                output = self.model.generate(**inputs, do_sample=True, num_return_sequences=self.args.num_gens, temperature=self.gtemp, repetition_penalty=1.0, top_p=self.top_p, max_length=3*self.args.max_length, return_dict_in_generate=True)
+                inputs = self.ltokenizer.apply_chat_template(instructions_inputs_batch, padding=True, truncation=True, max_length=self.args.max_length, return_tensors="pt", return_dict=True).to("cuda")
+                output = self.model.generate(**inputs, do_sample=True, num_return_sequences=self.args.num_gens, temperature=self.gtemp, repetition_penalty=1.0, top_p=self.top_p, max_new_tokens=512, return_dict_in_generate=True)
 
                 new_output_ids = output.sequences[:, inputs.input_ids.shape[1]:]
                 del inputs; del output
@@ -140,7 +140,7 @@ class LLM: # it's not inheriting from torch.nn.Module, so .generate is sperately
 
 
         inputs = self.tokenizer(new_sentences_batch, padding=True, truncation=True, return_tensors='pt',
-                                max_length=4*self.args.max_length, add_special_tokens=False).to("cuda")
+                                max_length=self.args.max_length, add_special_tokens=False).to("cuda")
 
         all_embeddings = []
         batch_size = 5
@@ -308,9 +308,9 @@ class GenEOL(torch.nn.Module):
             self.llm.switchon_gen_model()
             all_embeddings = []
             
-            save_path = os.path.join(args.output_folder, "..",'transformations')
+            save_path = os.path.join(args.output_folder, "transformations")
             os.makedirs(save_path, exist_ok=True)
-            print(save_path, flush=True)
+            print(f"Saving transformations to: {save_path}", flush=True)
 
             all_new_sentences_batch = []
             #! important to reduce size for all methods equally.
@@ -434,11 +434,96 @@ class GenEOL(torch.nn.Module):
                         for idx in range(len(sentences_batch)):
                             new_sentences_batch.append(sentences_batch[idx])
                             new_sentences_batch.extend(outputs[total_num_gens*idx:total_num_gens*(idx+1)])
+                    elif(args.method=='t5' or args.method=='t1'):
+                        # Two-stage thinking process: Reasoning → Transformation → Embedding
+                        print("Using intelleGenEOL approach with two-stage thinking...", flush=True)
+                        
+                        # First: Get reasoning about the best transformation strategy
+                        reasoning_prompts = []
+                        for s in sentences_batch:
+                            # Each function returns a list with one item, so we extend rather than append
+                            reasoning_prompts.extend(get_thinker_reasoning_prompt(s, args.task))
+                        
+                        # Call LLM for reasoning
+                        reasoning_outputs = self.llm.generate(reasoning_prompts)
+                        
+                        # Parse reasoning outputs to extract strategies
+                        strategies = []
+                        reasonings = []
+                        
+                        for output in reasoning_outputs:
+                            # Extract strategy name (should be at the end after "Strategy: ")
+                            strategy_line = None
+                            reasoning_text = ""
+                            
+                            # Split by lines and look for the strategy line
+                            lines = output.strip().split('\n')
+                            for i, line in enumerate(lines):
+                                if line.startswith("Strategy:"):
+                                    strategy_line = line
+                                    reasoning_text = "\n".join(lines[:i])
+                                    break
+                            
+                            if not strategy_line:
+                                # If no "Strategy:" line found, use the default and whole text as reasoning
+                                strategy = "Paraphrasing"
+                                reasoning_text = output
+                            else:
+                                strategy = strategy_line.replace("Strategy:", "").strip()
+                                # Normalize strategy names
+                                if "elaborat" in strategy.lower():
+                                    strategy = "Elaboration"
+                                elif "simplif" in strategy.lower():
+                                    strategy = "Simplification"
+                                elif "specific" in strategy.lower():
+                                    strategy = "Specificity"
+                                elif "context" in strategy.lower():
+                                    strategy = "Contextual framing"
+                                elif "abstract" in strategy.lower():
+                                    strategy = "Abstraction"
+                                elif "paraphras" in strategy.lower():
+                                    strategy = "Paraphrasing"
+                                else:
+                                    strategy = "Paraphrasing"  # Default if no match
+                            
+                            strategies.append(strategy)
+                            reasonings.append(reasoning_text)
+                        
+                        # Second: Generate transformations using derived strategies and reasoning
+                        transformation_prompts = []
+                        
+                        # Print debug information
+                        print("\n======= INTELLEGENEOL DEBUG INFO =======", flush=True)
+                        for idx, s in enumerate(sentences_batch):
+                            print(f"Original [{idx}]: {s}", flush=True)
+                            print(f"Strategy [{idx}]: {strategies[idx]}", flush=True)
+                            print(f"Reasoning [{idx}]: {reasonings[idx][:100]}...", flush=True)
+                            
+                            # Each function returns a list with one item, so we extend rather than append
+                            transformation_prompts.extend(get_transformation_debug_prompt(s, strategies[idx], reasonings[idx]))
+                        
+                        # Call LLM for transformations
+                        transformation_outputs = self.llm.generate(transformation_prompts)
+                        
+                        # Create new sentences batch with original and transformed sentences
+                        new_sentences_batch = []
+                        total_num_gens = 1  # We're generating 1 transformation per sentence for t1
+                        
+                        for idx, output in enumerate(transformation_outputs):
+                            # Add original sentence first
+                            new_sentences_batch.append(sentences_batch[idx])
+                            
+                            # Add transformation
+                            transformed = output.strip()
+                            print(f"Transformed [{idx}]: {transformed}", flush=True)
+                            new_sentences_batch.append(transformed)
+                        
+                        print("=======================================\n", flush=True)
                     elif(args.method=='b5'):
                         new_sentences_batch=sentences_batch
                         total_num_gens = 0
                     else:
-                        assert False, "pick between s5 and b5"
+                        assert False, "pick between s5, d5, r5, t1, t5 and b5"
                     all_new_sentences_batch.extend(new_sentences_batch)      
       
 
@@ -454,6 +539,8 @@ class GenEOL(torch.nn.Module):
                     total_num_gens = 4*args.num_gens
                 elif(args.method=='d5' or args.method=='d52'):
                     total_num_gens = 10*args.num_gens
+                elif(args.method=='t5' or args.method=='t1'):
+                    total_num_gens = 1  # We're generating 1 transformation per sentence for t1
                 elif(args.method=='b5'):
                     total_num_gens = 0
                     # assert False, "b5 not compatibale with compositional"

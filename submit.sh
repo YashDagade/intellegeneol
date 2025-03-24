@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Array of select values
-select_values=(24)
+select_values=(5)
 # select_values=(2)
 
 # Array of seed values
@@ -14,22 +14,23 @@ models["mistralai/Mistral-7B-v0.1"]="mistral0.1" # this is the embedding model
 # models["meta-llama/Meta-Llama-3-8B"]="llama3"
 
 # Base directories and other parameters
-base_output_dir="./Nlogs_meta/1014AB2_comp2_s5_llama3.1_8b_1_1_8"
+base_output_dir="./Nlogs/intelleGenEOL_t1_mistral_instr_5_1_1"
 base_script="./scripts/PromptEMB_accelerate_mteb.sh"
 partition="compsci-gpu"
 array="0-8%10"
 gres="gpu:a5000:1"
 ntasks=1
 mem="40gb"
-model_1="mistralai/Mistral-7B-Instruct-v0.1"
-task_name="llama_ethan_run"
-session="s5"
+thinker_model="mistralai/Mistral-7B-Instruct-v0.1"
+gen_model="mistralai/Mistral-7B-Instruct-v0.1"
+task_name="intellegeneol"
+session="t1"
 gpu_count=1
-task_per_node=2 # this is m - we need to change this to be optimal
+task_per_node=1 # this is m - we need to change this to be optimal
 
 # Outer loop: iterate over the models
-for model_2 in "${!models[@]}"; do
-  model_subdir="${models[$model_2]}"
+for emb_model in "${!models[@]}"; do
+  model_subdir="${models[$emb_model]}"
 
   # Middle loop: iterate over the select values
   for select_value in "${select_values[@]}"; do
@@ -38,10 +39,13 @@ for model_2 in "${!models[@]}"; do
     for seed in "${seed_values[@]}"; do
       # Include the seed value in the output directory
       output_dir="${base_output_dir}/${model_subdir}_k${select_value}_seed${seed}"
+      
+      # Create the output directory if it doesn't exist
+      mkdir -p "$output_dir"
 
       sbatch --partition=$partition --array=$array --gres=$gres --ntasks=$ntasks --mem=$mem \
              --output="${output_dir}/%03a.out" \
-             $base_script $task_name $session $model_1 $model_2 $gpu_count $task_per_node \
+             $base_script $task_name $session $gen_model $emb_model $gpu_count $task_per_node \
              --compositional --select $select_value --seed $seed
     done
   done
