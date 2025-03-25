@@ -400,7 +400,7 @@ Strategy: Elaboration
         'STS': "\nTASK CONTEXT: For Semantic Textual Similarity (STS), the transformation should ensure the core meaning is preserved while adding semantic richness that helps the model better capture nuanced similarities between sentences.",
         'Retrieval': "\nTASK CONTEXT: For Retrieval tasks, the transformation should enhance distinctions between similar but different concepts, making the sentence more retrievable for relevant queries.",
         'Classification': "\nTASK CONTEXT: For Classification tasks, the transformation should emphasize category-defining features while maintaining the sentence's original class membership.",
-        'Reranking': "\nTASK CONTEXT: For Reranking tasks, the transformation should preserve query relevance while enhancing the aspects that make the sentence particularly relevant or irrelevant.",
+        'Reranking': "\nTASK CONTEXT: For Reranking tasks, the transformation should preserve query relevance while enhancing the aspects that make the sentence more relevant or irrelevant.",
         'Clustering': "\nTASK CONTEXT: For Clustering tasks, the transformation should emphasize features that would help group this sentence with semantically similar sentences.",
         'PairClassification': "\nTASK CONTEXT: For Pair Classification tasks, the transformation should preserve or enhance the relationship (or lack thereof) between this sentence and potential pairs.",
         'Summarization': "\nTASK CONTEXT: For Summarization tasks, the transformation should preserve the key information while potentially making the sentence more concise or information-dense."
@@ -479,4 +479,124 @@ Transformed sentence:"""
     
     # Return a properly formatted list of message dictionaries
     return [{"role": "user", "content": prompt}]
+
+def get_contrastive_transformations_prompt(sentence, task=None):
+    """
+    Generate a prompt for creating multiple semantic transformations of a sentence for the ContrastiveEOL approach.
+    This approach focuses on generating three different types of transformations that maintain the core meaning
+    while providing different perspectives.
+    
+    Args:
+        sentence (str): The input sentence to transform
+        task (str, optional): The task context for transformation
+        
+    Returns:
+        list: A list of message dictionaries for the chat template
+    """
+    
+    # Define the base prompt that instructs the model to generate the three transformation types
+    base_prompt = f"""Transform the following input sentence into three different versions that preserve its core meaning but approach it from different angles. For each transformation, follow the specific instructions:
+
+Input sentence: "{sentence}"
+
+1. SEMANTIC CORE: Extract and express only the most essential meaning using different words. Be concise and direct.
+
+2. PERSPECTIVE SHIFT: Rewrite the sentence from a different grammatical or conceptual perspective, such as changing active to passive voice or shifting the focus to a different entity in the sentence.
+
+3. IMPLICATED INFORMATION: Include information that is implied but not explicitly stated in the original, while staying true to the likely intended meaning.
+
+Each transformation should be concise, grammatically correct, and maintain the core meaning. Avoid adding unnecessary details or excessive wording.
+
+Format your response as:
+SEMANTIC CORE: [your transformed sentence]
+PERSPECTIVE SHIFT: [your transformed sentence]
+IMPLICATED INFORMATION: [your transformed sentence]
+
+Do not include any additional explanations or commentary."""
+
+    # Add task-specific context if provided
+    task_contexts = {
+        'STS': "Since this is for a Semantic Textual Similarity task, ensure all transformations preserve the exact meaning but with different phrasings.",
+        'Retrieval': "Since this is for a Retrieval task, ensure the transformations preserve key retrievable concepts and entities.",
+        'Classification': "Since this is for a Classification task, ensure the transformations maintain any features that would determine classification outcomes.",
+        'Reranking': "Since this is for a Reranking task, focus on preserving the aspects that make this sentence relevant to potential queries.",
+        'Clustering': "Since this is for a Clustering task, ensure the transformations preserve the thematic elements that would determine cluster membership.",
+        'PairClassification': "Since this is for a Pair Classification task, preserve any relationship features that would be important when paired with other sentences.",
+        'Summarization': "Since this is for a Summarization task, ensure the transformations prioritize the most important information."
+    }
+    
+    if task in task_contexts:
+        base_prompt = f"{base_prompt}\n\nINSTRUCTION: {task_contexts[task]}"
+    
+    return [{"role": "user", "content": base_prompt}]
+
+
+def process_contrastive_outputs(output_text):
+    """
+    Process the output from the contrastive transformations prompt to extract the three transformations.
+    
+    Args:
+        output_text (str): The raw output from the LLM
+        
+    Returns:
+        dict: A dictionary with keys 'semantic_core', 'perspective_shift', and 'implicated_information',
+              each containing the corresponding transformation
+    """
+    # Initialize with empty strings in case parsing fails
+    transformations = {
+        'semantic_core': '',
+        'perspective_shift': '',
+        'implicated_information': ''
+    }
+    
+    # Define patterns to look for
+    patterns = {
+        'semantic_core': ['SEMANTIC CORE:', '1.', 'Semantic Core:'],
+        'perspective_shift': ['PERSPECTIVE SHIFT:', '2.', 'Perspective Shift:'],
+        'implicated_information': ['IMPLICATED INFORMATION:', '3.', 'Implicated Information:']
+    }
+    
+    # Process output line by line
+    lines = output_text.strip().split('\n')
+    current_key = None
+    
+    for line in lines:
+        line = line.strip()
+        if not line:
+            continue
+            
+        # Check if this line is a header
+        found_header = False
+        for key, headers in patterns.items():
+            for header in headers:
+                if line.startswith(header):
+                    current_key = key
+                    # Extract text after the header on the same line
+                    after_header = line[len(header):].strip()
+                    if after_header:
+                        transformations[current_key] = after_header
+                    found_header = True
+                    break
+            if found_header:
+                break
+                
+        # If not a header and we have a current key, append to that transformation
+        if not found_header and current_key and not transformations[current_key]:
+            transformations[current_key] = line
+    
+    # If any transformation is still empty, use some fallback logic
+    for key in transformations:
+        if not transformations[key]:
+            # Try a different parsing approach looking for the key phrase anywhere in a line
+            for line in lines:
+                for header in patterns[key]:
+                    if header in line:
+                        parts = line.split(header, 1)
+                        if len(parts) > 1:
+                            transformations[key] = parts[1].strip()
+                            break
+                if transformations[key]:
+                    break
+    
+    return transformations
 

@@ -2,11 +2,9 @@
 
 # Array of select values
 select_values=(5)
-# select_values=(2)
 
 # Array of seed values
 seed_values=(42)
-# seed_values=(42)
 
 # Models and their corresponding output subdirectories
 declare -A models
@@ -14,7 +12,7 @@ models["mistralai/Mistral-7B-v0.1"]="mistral0.1" # this is the embedding model
 # models["meta-llama/Meta-Llama-3-8B"]="llama3"
 
 # Base directories and other parameters
-base_output_dir="./Nlogs/intelleGenEOL_t1_mistral_instr_5_1_1"
+base_output_dir="./Nlogs/ContrastiveEOL_c3_mistral_instr_5_1_1"
 base_script="./scripts/PromptEMB_accelerate_mteb.sh"
 partition="compsci-gpu"
 array="0-8%10"
@@ -23,8 +21,8 @@ ntasks=1
 mem="40gb"
 thinker_model="mistralai/Mistral-7B-Instruct-v0.1"
 gen_model="mistralai/Mistral-7B-Instruct-v0.1"
-task_name="intellegeneol"
-session="t1"
+task_name="contrastiveeol"
+session="c3"
 gpu_count=1
 task_per_node=1 # this is m - we need to change this to be optimal
 
@@ -43,10 +41,11 @@ for emb_model in "${!models[@]}"; do
       # Create the output directory if it doesn't exist
       mkdir -p "$output_dir"
 
+      echo "Submitting ContrastiveEOL job with method c3, embedding model $emb_model, select value $select_value, seed $seed"
       sbatch --partition=$partition --array=$array --gres=$gres --ntasks=$ntasks --mem=$mem \
              --output="${output_dir}/%03a.out" \
              $base_script $task_name $session $gen_model $emb_model $gpu_count $task_per_node \
              --compositional --select $select_value --seed $seed
     done
   done
-done
+done 

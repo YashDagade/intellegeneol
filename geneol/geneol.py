@@ -519,11 +519,49 @@ class GenEOL(torch.nn.Module):
                             new_sentences_batch.append(transformed)
                         
                         print("=======================================\n", flush=True)
+                    elif(args.method=='c3'):
+                        # ContrastiveEOL: Single-pass generation of three transformation types
+                        print("Using ContrastiveEOL approach with semantic triangulation...", flush=True)
+                        
+                        # Generate prompts for contrastive transformations
+                        contrastive_prompts = []
+                        for s in sentences_batch:
+                            contrastive_prompts.extend(get_contrastive_transformations_prompt(s, args.task))
+                        
+                        # Call LLM for transformations
+                        contrastive_outputs = self.llm.generate(contrastive_prompts)
+                        
+                        # Create new sentences batch with original and transformed sentences
+                        new_sentences_batch = []
+                        total_num_gens = 3  # We're generating 3 transformations per sentence
+                        
+                        # Print debug information
+                        print("\n======= CONTRASTIVEEOL DEBUG INFO =======", flush=True)
+                        for idx, output in enumerate(contrastive_outputs):
+                            # Process the output to extract the three transformations
+                            transformations = process_contrastive_outputs(output)
+                            
+                            # Original sentence
+                            original = sentences_batch[idx]
+                            new_sentences_batch.append(original)
+                            print(f"Original [{idx}]: {original}", flush=True)
+                            
+                            # Add the three transformations
+                            for transform_type, transformed in transformations.items():
+                                if transformed:  # Only add non-empty transformations
+                                    print(f"{transform_type.replace('_', ' ').title()} [{idx}]: {transformed}", flush=True)
+                                    new_sentences_batch.append(transformed)
+                                else:
+                                    # If transformation extraction failed, just duplicate the original
+                                    print(f"Failed to extract {transform_type} transformation, using original", flush=True)
+                                    new_sentences_batch.append(original)
+                        
+                        print("=======================================\n", flush=True)
                     elif(args.method=='b5'):
                         new_sentences_batch=sentences_batch
                         total_num_gens = 0
                     else:
-                        assert False, "pick between s5, d5, r5, t1, t5 and b5"
+                        assert False, "pick between s5, d5, r5, t1, t5, c3 and b5"
                     all_new_sentences_batch.extend(new_sentences_batch)      
       
 
@@ -541,6 +579,8 @@ class GenEOL(torch.nn.Module):
                     total_num_gens = 10*args.num_gens
                 elif(args.method=='t5' or args.method=='t1'):
                     total_num_gens = 1  # We're generating 1 transformation per sentence for t1
+                elif(args.method=='c3'):
+                    total_num_gens = 3  # We're generating 3 transformations per sentence for c3
                 elif(args.method=='b5'):
                     total_num_gens = 0
                     # assert False, "b5 not compatibale with compositional"

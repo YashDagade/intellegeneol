@@ -7,9 +7,17 @@ run_id,embedding_model,experiment,method,gen_model,batch_size,num_gens,dataset,p
 1014AB2_comp2_s5_Mistral-7B-Instruct-v0.1_1_2,Mistral-7B-v0.1,1014AB2_comp2,s5,Mistral-7B-Instruct-v0.1,1,2,STS12,0.769011,0.696361,0.769011,0.696361,0.771051,0.72266,0.753913,0.709558,0.696361
 1014AB2_comp2_s5_Mistral-7B-Instruct-v0.1_1_2,Mistral-7B-v0.1,1014AB2_comp2,s5,Mistral-7B-Instruct-v0.1,1,2,STS14,0.798676,0.776004,0.798676,0.776004,0.801085,0.785024,0.791526,0.775513,0.776004
 1014AB2_comp2_s5_Mistral-7B-Instruct-v0.1_1_2,Mistral-7B-v0.1,1014AB2_comp2,s5,Mistral-7B-Instruct-v0.1,1,2,SICK-R,0.776822,0.765485,0.776822,0.765485,0.781813,0.772876,0.767137,0.761976,0.765485
+contrastiveeol_c3_Mistral-7B-Instruct-v0.1_1_1,Mistral-7B-v0.1,contrastiveeol,c3,Mistral-7B-Instruct-v0.1,1,1,STS17,0.803671,0.811719,0.803671,0.811719,0.828117,0.816778,0.819524,0.809683,0.811719
+contrastiveeol_c3_Mistral-7B-Instruct-v0.1_1_1,Mistral-7B-v0.1,contrastiveeol,c3,Mistral-7B-Instruct-v0.1,1,1,STS16,0.751049,0.782004,0.751049,0.782004,0.789347,0.795084,0.777596,0.784857,0.782004
+contrastiveeol_c3_Mistral-7B-Instruct-v0.1_1_1,Mistral-7B-v0.1,contrastiveeol,c3,Mistral-7B-Instruct-v0.1,1,1,STSBenchmark,0.774128,0.777597,0.774128,0.777597,0.796097,0.788551,0.782436,0.778333,0.777597
+contrastiveeol_c3_Mistral-7B-Instruct-v0.1_1_1,Mistral-7B-v0.1,contrastiveeol,c3,Mistral-7B-Instruct-v0.1,1,1,STS13,0.802067,0.809002,0.802067,0.809002,0.819913,0.823956,0.805566,0.80898,0.809002
+contrastiveeol_c3_Mistral-7B-Instruct-v0.1_1_1,Mistral-7B-v0.1,contrastiveeol,c3,Mistral-7B-Instruct-v0.1,1,1,STS15,0.79327,0.809173,0.79327,0.809173,0.81496,0.817881,0.800387,0.804232,0.809173
+contrastiveeol_c3_Mistral-7B-Instruct-v0.1_1_1,Mistral-7B-v0.1,contrastiveeol,c3,Mistral-7B-Instruct-v0.1,1,1,STS12,0.733796,0.628089,0.733796,0.628089,0.735428,0.661961,0.713927,0.644367,0.628089
+contrastiveeol_c3_Mistral-7B-Instruct-v0.1_1_1,Mistral-7B-v0.1,contrastiveeol,c3,Mistral-7B-Instruct-v0.1,1,1,STS14,0.778883,0.739779,0.778883,0.739779,0.782721,0.754676,0.771974,0.744757,0.739779
 intellegeneol_t1_Mistral-7B-Instruct-v0.1_1_1,Mistral-7B-v0.1,intellegeneol,t1,Mistral-7B-Instruct-v0.1,1,1,STS17,0.795904,0.81124,0.795904,0.81124,0.830184,0.832302,0.806406,0.811571,0.81124
 intellegeneol_t1_Mistral-7B-Instruct-v0.1_1_1,Mistral-7B-v0.1,intellegeneol,t1,Mistral-7B-Instruct-v0.1,1,1,STS16,0.736512,0.764869,0.736512,0.764869,0.780374,0.788977,0.765058,0.775264,0.764869
 intellegeneol_t1_Mistral-7B-Instruct-v0.1_1_1,Mistral-7B-v0.1,intellegeneol,t1,Mistral-7B-Instruct-v0.1,1,1,STSBenchmark,0.755464,0.744178,0.755464,0.744178,0.77216,0.760356,0.755541,0.745752,0.744178
 intellegeneol_t1_Mistral-7B-Instruct-v0.1_1_1,Mistral-7B-v0.1,intellegeneol,t1,Mistral-7B-Instruct-v0.1,1,1,STS13,0.780375,0.78097,0.780375,0.78097,0.809632,0.811146,0.791722,0.793869,0.78097
 intellegeneol_t1_Mistral-7B-Instruct-v0.1_1_1,Mistral-7B-v0.1,intellegeneol,t1,Mistral-7B-Instruct-v0.1,1,1,STS15,0.775888,0.788521,0.775888,0.788521,0.794742,0.79948,0.777244,0.782094,0.788521
 intellegeneol_t1_Mistral-7B-Instruct-v0.1_1_1,Mistral-7B-v0.1,intellegeneol,t1,Mistral-7B-Instruct-v0.1,1,1,STS12,0.697921,0.575225,0.697921,0.575225,0.708906,0.627981,0.6764,0.598327,0.575225
+intellegeneol_t1_Mistral-7B-Instruct-v0.1_1_1,Mistral-7B-v0.1,intellegeneol,t1,Mistral-7B-Instruct-v0.1,1,1,STS14,0.760357,0.709215,0.760357,0.709215,0.771532,0.736236,0.752833,0.719077,0.709215
