@@ -106,6 +106,22 @@ Sentence: {input_text}"""
 
 
 
+''' 
+EOL prompt:
+{}
+that was not good, give me a better one {} 
+{} 
+
+
+
+User: The sentence “[Text]” in one word means:”
+Assistant: [Mask]
+User: This doesn’t entirely represent the sentence. Try again. The sentence “[Text]” in one word means:”
+Assistant: [Mask]
+User: This doesn’t entirely represent the sentence. Try again. The sentence “[Text]” in one word means:”
+Assistant: [Mask]
+
+'''
 
 
 def get_diverse_prompt2(input_text, task):
@@ -238,6 +254,7 @@ pos2_template = [
     {"role": "user", "content": "*u6*"},
         
 ]
+
 
 
 
@@ -554,6 +571,137 @@ def process_contrastive_outputs(output_text):
         'semantic_core': ['SEMANTIC CORE:', '1.', 'Semantic Core:'],
         'perspective_shift': ['PERSPECTIVE SHIFT:', '2.', 'Perspective Shift:'],
         'implicated_information': ['IMPLICATED INFORMATION:', '3.', 'Implicated Information:']
+    }
+    
+    # Process output line by line
+    lines = output_text.strip().split('\n')
+    current_key = None
+    
+    for line in lines:
+        line = line.strip()
+        if not line:
+            continue
+            
+        # Check if this line is a header
+        found_header = False
+        for key, headers in patterns.items():
+            for header in headers:
+                if line.startswith(header):
+                    current_key = key
+                    # Extract text after the header on the same line
+                    after_header = line[len(header):].strip()
+                    if after_header:
+                        transformations[current_key] = after_header
+                    found_header = True
+                    break
+            if found_header:
+                break
+                
+        # If not a header and we have a current key, append to that transformation
+        if not found_header and current_key and not transformations[current_key]:
+            transformations[current_key] = line
+    
+    # If any transformation is still empty, use some fallback logic
+    for key in transformations:
+        if not transformations[key]:
+            # Try a different parsing approach looking for the key phrase anywhere in a line
+            for line in lines:
+                for header in patterns[key]:
+                    if header in line:
+                        parts = line.split(header, 1)
+                        if len(parts) > 1:
+                            transformations[key] = parts[1].strip()
+                            break
+                if transformations[key]:
+                    break
+    
+    return transformations
+
+
+def get_diverse_transformations_prompt(sentence, task=None):
+    """
+    Generate a prompt for creating five diverse semantic transformations of a sentence
+    for the DiverseGenEOL approach. This approach focuses on generating transformations
+    that maximize semantic diversity.
+    
+    Args:
+        sentence (str): The input sentence to transform
+        task (str, optional): The task context for transformation
+        
+    Returns:
+        list: A list of message dictionaries for the chat template
+    """
+    
+    # Define the base prompt that instructs the model to generate the five transformation types
+    base_prompt = f"""Transform the following input sentence into five different versions that preserve its core meaning but explore different semantic dimensions. For each transformation, follow the specific instructions:
+
+Input sentence: "{sentence}"
+
+1. CORE REPRESENTATION: Express only the most essential meaning in the most concise way possible.
+
+2. ENTITY SUBSTITUTION: Replace key entities (nouns, verbs) with semantically equivalent alternatives. Use synonyms or related concepts.
+
+3. CONCEPTUAL ABSTRACTION: Express the meaning at a higher conceptual level, focusing on the underlying idea rather than specific details.
+
+4. SPECIFICITY ENHANCEMENT: Add precise, relevant details that clarify the meaning without changing it.
+
+5. RELATIONAL REFRAMING: Restructure the sentence to highlight different relationships between the entities mentioned.
+
+Each transformation should be concise, grammatically correct, and maintain the core meaning. Avoid verbosity, unnecessary details, and semantic drift.
+
+Format your response as:
+CORE REPRESENTATION: [your transformed sentence]
+ENTITY SUBSTITUTION: [your transformed sentence]
+CONCEPTUAL ABSTRACTION: [your transformed sentence]
+SPECIFICITY ENHANCEMENT: [your transformed sentence]
+RELATIONAL REFRAMING: [your transformed sentence]
+
+Do not include any additional explanations or commentary."""
+
+    # Add task-specific context if provided
+    task_contexts = {
+        'STS': "Since this is for a Semantic Textual Similarity task, ensure all transformations preserve the exact meaning but explore different ways of expressing it.",
+        'Retrieval': "Since this is for a Retrieval task, ensure the transformations preserve key retrievable concepts while exploring different ways to express them.",
+        'Classification': "Since this is for a Classification task, ensure the transformations maintain features that determine classification outcomes.",
+        'Reranking': "Since this is for a Reranking task, focus on preserving aspects that determine relevance while exploring different semantic dimensions.",
+        'Clustering': "Since this is for a Clustering task, ensure the transformations preserve thematic elements while exploring semantic diversity.",
+        'PairClassification': "Since this is for a Pair Classification task, preserve relationship features while exploring different semantic perspectives.",
+        'Summarization': "Since this is for a Summarization task, ensure the transformations prioritize important information while exploring different ways to express it."
+    }
+    
+    if task in task_contexts:
+        base_prompt = f"{base_prompt}\n\nINSTRUCTION: {task_contexts[task]}"
+    
+    return [{"role": "user", "content": base_prompt}]
+
+
+def process_diverse_outputs(output_text):
+    """
+    Process the output from the diverse transformations prompt to extract the five transformations.
+    
+    Args:
+        output_text (str): The raw output from the LLM
+        
+    Returns:
+        dict: A dictionary with keys for each transformation type,
+              each containing the corresponding transformation
+    """
+    # Initialize with empty strings in case parsing fails
+    transformations = {
+        'core_representation': '',
+        'entity_substitution': '',
+        'conceptual_abstraction': '',
+        'specificity_enhancement': '',
+        'relational_reframing': ''
+    }
+    
+    # Define patterns to look for
+    patterns = {
+        'core_representation': ['CORE REPRESENTATION:', '1.', 'Core Representation:'],
+        'entity_substitution': ['ENTITY SUBSTITUTION:', '2.', 'Entity Substitution:'],
+        'conceptual_abstraction': ['CONCEPTUAL ABSTRACTION:', '3.', 'Conceptual Abstraction:'],
+        'specificity_enhancement': ['SPECIFICITY ENHANCEMENT:', '4.', 'Specificity Enhancement:'],
+        'relational_reframing': ['RELATIONAL REFRAMING:', '5.', 'Relational Reframing:']
     }
     
     # Process output line by line
