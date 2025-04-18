@@ -1,0 +1,43 @@
+
+
+Our main gaol is this. See current EOL methods work by using a prompt such as this:
+
+f'<s>The essence of a sentence is often captured by its main subjects and actions, while descriptive terms provide additional but less central details. With this in mind , this sentence : "{s}" means in one word:
+
+
+And than what we do is that see the embeddings opearet in V_embed, the vocab dimension is V_vocab
+
+
+Before projecting to the vocabulary matrix we use the embedding matrix that's at the PENULTIMATE layer and extract that embedding. 
+
+
+This is standard EOL practice. 
+
+this is the code block that does that:
+
+            if self.args.penultimate_layer!=-1:
+                hidden_states = (getattr(self.model, self.embedding_attr) if self.embedding_attr else self.model)(
+                    **batch_inputs, output_hidden_states=True, return_dict=True).hidden_states
+                last_hidden_state = hidden_states[self.args.penultimate_layer]
+
+
+now the main observation we ahve is that diverseity can gernaete better embeddings. That's teh goal of this repositery and geneeol. 
+
+However instead of transforming the sentences embedding them and than averaging that since the token cost of that is close to around one thousdand tokens what we want to do is generate these diverse embeddings by using the llms to give us better embeddings so we ask it something like this again:
+
+
+f'<s>The essence of a sentence is often captured by its main subjects and actions, while descriptive terms provide additional but less central details. With this in mind , this sentence : "{s}" means in one word:
+
+
+
+extract the EOL embedding but than also note the word we get and than do something like this change the prompt so that it now says
+
+
+f'<s>The essence of a sentence is often captured by its main subjects and actions, while descriptive terms such as [insert the token here] provide additional but less central details. With this in mind , this sentence : "{s}" means in one word:
+
+
+and now get the new embedding and do this 5 times so we get 5 diverse embeddings. 
+
+Rmemeber we don't use finetuned chat models for embedding, we always use the base model here so continue using base mdel for everything here and do something like this to get divese embeddings from this EOL approach. 
+
+Chagne the code so that when I do sbatch submit.sh this should work correctly and accuarately and make this change while not chagning anything else and be extra carefel to ensure that everything works and we don't have any errors. 

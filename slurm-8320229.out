@@ -1,0 +1,13 @@
+====================================================
+Launching RegenerateEOL (r5) experiments
+====================================================
+Using 5 diverse embeddings per sentence
+Embedding model: mistral0.1
+Generation model: mistralai/Mistral-7B-Instruct-v0.1
+Output directory: ./Nlogs/RegenerateEOL_r5
+====================================================
+Submitting RegenerateEOL job with method r5, embedding model mistralai/Mistral-7B-v0.1, select value 5, seed 42
+Submitted batch job 8320230
+====================================================
+All jobs submitted! Check the logs in ./Nlogs/RegenerateEOL_r5
+====================================================

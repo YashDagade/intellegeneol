@@ -1,51 +1,55 @@
 #!/bin/bash
 
-# Array of select values
-select_values=(5)
+# Configuration for RegenerateEOL experiments
+select_value=5  # Number of diverse embeddings to generate
 
-# Array of seed values
-seed_values=(42)
+# Random seed for reproducibility
+seed=42
 
 # Models and their corresponding output subdirectories
 declare -A models
 models["mistralai/Mistral-7B-v0.1"]="mistral0.1" # this is the embedding model
-# models["meta-llama/Meta-Llama-3-8B"]="llama3"
 
 # Base directories and other parameters
-base_output_dir="./Nlogs/DiverseGenEOL_d5_mistral_instr_5_1_1"
+base_output_dir="./Nlogs/RegenerateEOL_r5"
 base_script="./scripts/PromptEMB_accelerate_mteb.sh"
 partition="compsci-gpu"
-array="0-8%10"
+array="0-8%10"  # Array job for STS tasks
 gres="gpu:a5000:1"
 ntasks=1
 mem="40gb"
-thinker_model="mistralai/Mistral-7B-Instruct-v0.1"
 gen_model="mistralai/Mistral-7B-Instruct-v0.1"
-task_name="diversegeneol"
-session="d5"
+session="r5"  # Using r5 method (5 diverse embeddings)
 gpu_count=1
-task_per_node=1 # this is m - we need to change this to be optimal
+task_per_node=1
 
-# Outer loop: iterate over the models
+# Print banner
+echo "===================================================="
+echo "Launching RegenerateEOL (r5) experiments"
+echo "===================================================="
+echo "Using 5 diverse embeddings per sentence"
+echo "Embedding model: ${models[@]}"
+echo "Generation model: $gen_model"
+echo "Output directory: $base_output_dir"
+echo "===================================================="
+
+# Iterate over the models
 for emb_model in "${!models[@]}"; do
   model_subdir="${models[$emb_model]}"
 
-  # Middle loop: iterate over the select values
-  for select_value in "${select_values[@]}"; do
+  # Set up output directory
+  output_dir="${base_output_dir}/${model_subdir}_k${select_value}_seed${seed}"
+  
+  # Create the output directory if it doesn't exist
+  mkdir -p "$output_dir"
 
-    # Inner loop: iterate over the seed values
-    for seed in "${seed_values[@]}"; do
-      # Include the seed value in the output directory
-      output_dir="${base_output_dir}/${model_subdir}_k${select_value}_seed${seed}"
-      
-      # Create the output directory if it doesn't exist
-      mkdir -p "$output_dir"
+  echo "Submitting RegenerateEOL job with method r5, embedding model $emb_model, select value $select_value, seed $seed"
+  sbatch --partition=$partition --array=$array --gres=$gres --ntasks=$ntasks --mem=$mem \
+         --output="${output_dir}/%03a.out" \
+         $base_script regenerateol $session $gen_model $emb_model $gpu_count $task_per_node \
+         --normalized --select $select_value --seed $seed
+done
 
-      echo "Submitting DiverseGenEOL job with method d5, embedding model $emb_model, select value $select_value, seed $seed"
-      sbatch --partition=$partition --array=$array --gres=$gres --ntasks=$ntasks --mem=$mem \
-             --output="${output_dir}/%03a.out" \
-             $base_script $task_name $session $gen_model $emb_model $gpu_count $task_per_node \
-             --compositional --select $select_value --seed $seed
-    done
-  done
-done 
+echo "===================================================="
+echo "All jobs submitted! Check the logs in $base_output_dir"
+echo "====================================================" 

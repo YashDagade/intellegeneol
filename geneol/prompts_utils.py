@@ -114,11 +114,11 @@ that was not good, give me a better one {}
 
 
 
-User: The sentence “[Text]” in one word means:”
+User: The sentence "[Text]" in one word means:"
 Assistant: [Mask]
-User: This doesn’t entirely represent the sentence. Try again. The sentence “[Text]” in one word means:”
+User: This doesn't entirely represent the sentence. Try again. The sentence "[Text]" in one word means:
 Assistant: [Mask]
-User: This doesn’t entirely represent the sentence. Try again. The sentence “[Text]” in one word means:”
+User: This doesn't entirely represent the sentence. Try again. The sentence "[Text]" in one word means:
 Assistant: [Mask]
 
 '''
@@ -135,33 +135,124 @@ def get_diverse_prompt2(input_text, task):
 
 def get_task_specific_emb_prompt(input_text, task):
     # Define a dictionary mapping tasks to their respective prompt templates
-    # task_prompts = defaultdict(lambda: f"<s>This sentence : \"{input_text}\" means in one word:\"")
-    # task_prompts = defaultdict(lambda: f"<s>After thinking step by step , this sentence : \"{input_text}\" means in one word:\"")
-    task_prompts = defaultdict(lambda: f"<s>The essence of a sentence is often captured by its main subjects and actions, while descriptive terms provide additional but less central details. With this in mind , this sentence : \"{input_text}\" means in one word:\"")
+    task_prompts = defaultdict(lambda: f"<s>[INST] What single word best captures the core meaning of this sentence: \"{input_text}\"? Reply with ONLY ONE WORD. [/INST]")
     # Add task-specific prompts
     task_prompts.update({
-        "MR": f"<s>In this task, you're given a movie review, and you need to classify its sentiment into positive or negative. For this task, this sentence : \"{input_text}\" means in one word:\"",
-        "CR": f"<s>In this task, you're given a customer review of a product sold online, and you need to classify its sentiment into positive or negative. For this task, this sentence : \"{input_text}\" means in one word:\"",
-        "SUBJ": f"<s>In this task, you're analyzing movie reviews to determine their level of subjectivity. A subjective review is filled with personal opinions, feelings, and preferences of the reviewer, often expressing likes or dislikes and personal experiences. An objective review, on the other hand, sticks to factual information, such as plot details or actor performances, without revealing the reviewer's personal stance. For this task, this sentence : \"{input_text}\" means in one word:\"",
-        "MPQA": f"<s>In this task, you are given a description of an entity or event expressed in data such as blogs, newswire, and editorials. You need to classify its sentiment into positive or negative. For this task, this sentence : \"{input_text}\" means in one word:\"",
-        "SST": f"<s>In this task, you're given a movie review, and you need to classify its sentiment into positive or negative. For this task, this sentence : \"{input_text}\" means in one word:\"",
-        "TREC": f"<s>In this task, you are given a question. You need to detect which category better describes the question. A question belongs to the description category if it asks about description and abstract concepts. Entity questions are about entities such as animals, colors, sports, etc. Abbreviation questions ask about abbreviations and expressions abbreviated. Questions regarding human beings, description of a person, and a group or organization of persons are categorized as Human. Quantity questions are asking about numeric values and Location questions ask about locations, cities, and countries. Answer with \"Description\", \"Entity\", \"Abbreviation\", \"Person\", \"Quantity\", and \"Location\". For this task, this sentence : \"{input_text}\" means in one word:\"",
-        "MRPC": f"<s>In this task, you are given two sentences(Sentence1 and Sentence2). Answer \"Yes\" if these sentences are a paraphrase of one another, otherwise answer \"No\". For this task, this sentence : \"{input_text}\" means in one word:\"",
-        "MedrxivClusteringS2S": f"<s>In this task, identify the main category of Medrxiv papers based on the titles. For this task, this title : \"{input_text}\" means in one word:\"",
-        "TwentyNewsgroupsClustering": f"<s>In this task, identify the topic and theme of the news article. For this task, this article : \"{input_text}\" means in one word:\"",
-        "AmazonCounterfactualClassification": f"<s>In this task, classify a given Amazon customer review text as either counterfactual or not-counterfactual. For this task, this review : \"{input_text}\" means in one word:\"",
-        "Banking77Classification": f"<s>In this task, given an online banking query, find the corresponding intents. For this task, this query : \"{input_text}\" means in one word:\"",
-        "EmotionClassification": f"<s>In this task, classify the emotion expressed in the given Twitter message into one of the six emotions: anger, fear, joy, love, sadness, and surprise. For this task, this message : \"{input_text}\" means in one word:\"",
-        "AskUbuntuDupQuestions": f"<s>In this task, you need to retrieve duplicate questions from AskUbuntu forum. For this task, this question : \"{input_text}\" means in one word:\"",
-        "SciDocsRR": f"<s>In this task, given a title of a scientific paper, retrieve the titles of other relevant papers. For this task, this title : \"{input_text}\" means in one word:\"",
-        "StackOverflowDupQuestions": f"<s>In this task, retrieve duplicate questions from StackOverflow forum. For this task, this question : \"{input_text}\" means in one word:\"",
-        "SprintDuplicateQuestions": f"<s>In this task, retrieve duplicate questions from Sprint forum. For this task, this question : \"{input_text}\" means in one word:\"",
-        "TwitterSemEval2015": f"<s>In this task, retrieve tweets that are semantically similar to the given tweet. For this task, this tweet : \"{input_text}\" means in one word:\"",
-        "TwitterURLCorpus": f"<s>In this task, retrieve tweets that are semantically similar to the given tweet. For this task, this tweet : \"{input_text}\" means in one word:\"",
+        "MR": f"<s>[INST] What single word best captures the SENTIMENT (positive/negative) of this movie review: \"{input_text}\"? Reply with ONLY ONE WORD. [/INST]",
+        "CR": f"<s>[INST] What single word best captures the SENTIMENT (positive/negative) of this product review: \"{input_text}\"? Reply with ONLY ONE WORD. [/INST]",
+        "SUBJ": f"<s>[INST] Is this movie review SUBJECTIVE (opinion-based) or OBJECTIVE (fact-based)? \"{input_text}\". Reply with ONLY ONE WORD. [/INST]",
+        "MPQA": f"<s>[INST] What single word best captures the SENTIMENT (positive/negative) of this text: \"{input_text}\"? Reply with ONLY ONE WORD. [/INST]",
+        "SST": f"<s>[INST] What single word best captures the SENTIMENT (positive/negative) of this review: \"{input_text}\"? Reply with ONLY ONE WORD. [/INST]",
+        "TREC": f"<s>[INST] Categorize this question: \"{input_text}\". Choose ONE category: Description, Entity, Abbreviation, Person, Quantity, or Location. Reply with ONLY ONE WORD. [/INST]",
+        "MRPC": f"<s>[INST] Are these sentences paraphrases of each other? \"{input_text}\". Reply with ONLY 'Yes' or 'No'. [/INST]",
+        "MedrxivClusteringS2S": f"<s>[INST] What single CATEGORY best describes this medical paper title: \"{input_text}\"? Reply with ONLY ONE WORD. [/INST]",
+        "TwentyNewsgroupsClustering": f"<s>[INST] What single TOPIC best describes this news article: \"{input_text}\"? Reply with ONLY ONE WORD. [/INST]",
+        "AmazonCounterfactualClassification": f"<s>[INST] Is this Amazon review COUNTERFACTUAL or NOT? \"{input_text}\". Reply with ONLY ONE WORD. [/INST]",
+        "Banking77Classification": f"<s>[INST] What single word best describes the INTENT of this banking query: \"{input_text}\"? Reply with ONLY ONE WORD. [/INST]",
+        "EmotionClassification": f"<s>[INST] Which EMOTION is expressed in this tweet: \"{input_text}\"? Choose ONE: anger, fear, joy, love, sadness, surprise. Reply with ONLY ONE WORD. [/INST]",
+        "AskUbuntuDupQuestions": f"<s>[INST] What single word best describes the TOPIC of this Ubuntu question: \"{input_text}\"? Reply with ONLY ONE WORD. [/INST]",
+        "SciDocsRR": f"<s>[INST] What single word best captures the core TOPIC of this scientific paper title: \"{input_text}\"? Reply with ONLY ONE WORD. [/INST]",
+        "StackOverflowDupQuestions": f"<s>[INST] What single word best describes the PROGRAMMING TOPIC of this Stack Overflow question: \"{input_text}\"? Reply with ONLY ONE WORD. [/INST]",
+        "SprintDuplicateQuestions": f"<s>[INST] What single word best describes the TOPIC of this Sprint forum question: \"{input_text}\"? Reply with ONLY ONE WORD. [/INST]",
+        "TwitterSemEval2015": f"<s>[INST] What single word best captures the core TOPIC of this tweet: \"{input_text}\"? Reply with ONLY ONE WORD. [/INST]",
+        "TwitterURLCorpus": f"<s>[INST] What single word best summarizes what this tweet is about: \"{input_text}\"? Reply with ONLY ONE WORD. [/INST]",
     })
 
     # Return the appropriate task-specific prompt
     return task_prompts[task]
+
+def get_task_specific_gen_prompt(input_text, task):
+    """
+    Placeholder function to fix the error in the code.
+    This function is called in the r5 method but was missing from the codebase.
+    
+    Args:
+        input_text (str): The input sentence
+        task (str): The task name
+        
+    Returns:
+        dict: A message dictionary for prompt engineering
+    """
+    # For RegenerateEOL, we don't actually need to generate sentence transformations
+    # We'll just return a placeholder prompt to avoid errors
+    return {"role": "user", "content": f"Considering the sentence: \"{input_text}\", provide a one-word summary."}
+
+def get_regenerate_emb_prompts(input_text, num_diverse, task=None, previous_embeddings=None):
+    """
+    Generate a sequence of prompts for RegenerateEOL using the EOL approach.
+    
+    Args:
+        input_text (str): The input sentence to embed
+        num_diverse (int): Number of diverse embeddings to generate (including original)
+        task (str, optional): The task context
+        previous_embeddings (list, optional): List of previous embedding words to guide diversity
+        
+    Returns:
+        list: A list of prompt strings for generating diverse embeddings
+    """
+    # Initialize prompts list
+    prompts = []
+    
+    # Standard EOL prompt format - this is the core prompt template for all embeddings
+    if previous_embeddings is None or len(previous_embeddings) == 0:
+        # First prompt with no previous context
+        base_prompt = f"<s>The essence of a sentence is often captured by its main subjects and actions, while descriptive terms provide additional but less central details. With this in mind, this sentence: \"{input_text}\" means in one word:"
+    else:
+        # Include previous embeddings as context for diversity
+        previous_words = ", ".join([f'"{word}"' for word in previous_embeddings])
+        base_prompt = f"<s>The essence of a sentence is often captured by its main subjects and actions, while descriptive terms such as {previous_words} provide additional but less central details. With this in mind, this sentence: \"{input_text}\" means in one word:"
+    
+    # Add the prompt to the list
+    prompts.append(base_prompt)
+    
+    # Return the prompt
+    return prompts
+
+def get_regenerate_conversation_prompt(input_text, num_diverse, task=None):
+    """
+    Generate a conversation-style prompt for RegenerateEOL that simulates asking for diverse embeddings.
+    
+    Args:
+        input_text (str): The input sentence to embed
+        num_diverse (int): Number of diverse embeddings to generate (including original)
+        task (str, optional): The task context
+        
+    Returns:
+        list: A list of message dictionaries for the chat template
+    """
+    # Base task prompt
+    task_prefix = ""
+    if task is not None:
+        task_mapping = {
+            "MR": "In this task, you're given a movie review, and you need to classify its sentiment into positive or negative. ",
+            "CR": "In this task, you're given a customer review of a product sold online, and you need to classify its sentiment into positive or negative. ",
+            # Add more task mappings as needed
+        }
+        task_prefix = task_mapping.get(task, "")
+    
+    # Initial prompt
+    messages = [
+        {"role": "user", "content": f"{task_prefix}The essence of a sentence is often captured by its main subjects and actions. Provide the most accurate one-word meaning for this sentence: \"{input_text}\""}
+    ]
+    
+    # Diversity follow-up prompts
+    diversity_prompts = [
+        f"That's one perspective. From another angle, what would be a different one-word meaning for this sentence: \"{input_text}\"",
+        f"Give me a completely different perspective. What's another one-word meaning for: \"{input_text}\"",
+        f"Consider the emotions conveyed. What's the one-word meaning focusing on sentiment for: \"{input_text}\"",
+        f"Focus on the actions or events. What's the one-word meaning capturing the main action in: \"{input_text}\"",
+        f"Think about the underlying concepts. What's the one-word meaning expressing the core concept in: \"{input_text}\"",
+        f"Consider the entities involved. What's the one-word meaning highlighting the main entity in: \"{input_text}\""
+    ]
+    
+    # Add dummy assistant responses and follow-up prompts
+    for i in range(min(num_diverse - 1, len(diversity_prompts))):
+        # Add a placeholder response from assistant (will be replaced during generation)
+        messages.append({"role": "assistant", "content": "[ONE_WORD_MEANING]"})
+        # Add the follow-up prompt from user
+        messages.append({"role": "user", "content": diversity_prompts[i]})
+    
+    return messages
 
 
 

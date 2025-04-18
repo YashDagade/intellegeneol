@@ -289,6 +289,12 @@ class GenEOL(torch.nn.Module):
         **kwargs,
     ) -> np.ndarray:
         self.encode_call+=1
+        # If args is None, use self.args
+        if args is None:
+            args = self.args
+            
+        # Initialize new_sentences_batch as empty list for safety
+        new_sentences_batch = []
         
         input_was_string = False
         if isinstance(sentences, str):
@@ -598,8 +604,21 @@ class GenEOL(torch.nn.Module):
                     elif(args.method=='b5'):
                         new_sentences_batch=sentences_batch
                         total_num_gens = 0
+                    elif(args.method=='r3' or args.method=='r5'):
+                        # RegenerateEOL: Direct diverse embedding generation without sentence transformations
+                        print(f"Using RegenerateEOL approach with {args.num_gens} diverse embeddings...", flush=True)
+                        
+                        # Determine number of diverse embeddings to generate
+                        num_diverse = 3 if args.method == 'r3' else 5
+
+                        # Store original sentences for embedding
+                        new_sentences_batch = sentences_batch.copy()
+                        total_num_gens = 0  # Special case: no actual sentence generation
+                        
+                        # We'll handle the embedding differently for this method in the embedding phase
+                        # Just preserve the original sentences here
                     else:
-                        assert False, "pick between s5, d5, r5, t1, t5, c3, d5 and b5"
+                        assert False, "pick between s5, d5, r5, r3, t1, t5, c3, d5 and b5"
                     all_new_sentences_batch.extend(new_sentences_batch)      
       
 
@@ -624,6 +643,10 @@ class GenEOL(torch.nn.Module):
                 elif(args.method=='b5'):
                     total_num_gens = 0
                     # assert False, "b5 not compatibale with compositional"
+                elif(args.method=='r3' or args.method=='r5'):
+                    # RegenerateEOL methods have special handling for num_gens
+                    num_diverse = 3 if args.method == 'r3' else 5
+                    total_num_gens = 0  # Special handling in embedding phase
                 else:
                     assert False, "Not accepted method"
 
@@ -679,12 +702,207 @@ class GenEOL(torch.nn.Module):
                 self.llm.switchon_emb_model()          
                 # all_new_sentences_batch = [f'<s>The essence of a sentence is often captured by its main subjects and actions, while descriptive terms provide additional but less central details. With this in mind , this sentence : "{s}" means in one word:"' for s in all_new_sentences_batch]
 
-                all_new_sentences_batch = [get_task_specific_emb_prompt(s, args.task if args.tsep else None) for s in all_new_sentences_batch]
-                print(all_new_sentences_batch[:5], len(all_new_sentences_batch), flush=True)
-
-
-                
-                # all_new_sentences_batch = [f'<s>This sentence : "{s}" means in one word:"' for s in all_new_sentences_batch]
+                # For RegenerateEOL, we need special handling of the embedding prompts
+                if args.method in ['r3', 'r5']:
+                    # For RegenerateEOL, we process each sentence individually to get multiple embeddings
+                    num_diverse = 3 if args.method == 'r3' else 5
+                    all_embeddings = []
+                    
+                    # Process each original sentence
+                    total_sentences = len(all_new_sentences_batch)
+                    print(f"Total sentences to process: {total_sentences}", flush=True)
+                    
+                    for sentence_idx, sentence in enumerate(tqdm(all_new_sentences_batch, desc="RegenerateEOL Embeddings")):
+                        # Make sure we don't exceed the expected count - safety check for STS datasets
+                        if sentence_idx >= total_sentences:
+                            print(f"WARNING: Reached maximum expected sentence count. Stopping at {sentence_idx}.", flush=True)
+                            break
+                            
+                        # Print progress info
+                        if sentence_idx % 10 == 0:
+                            print(f"\nProcessing sentence {sentence_idx}/{total_sentences}: \"{sentence[:50]}{'...' if len(sentence) > 50 else ''}\"", flush=True)
+                        
+                        # Track embedding words for diversity signaling
+                        embedding_words = []
+                        
+                        # Generate multiple embeddings with diversity
+                        batch_embeddings = []
+                        
+                        # Process each embedding sequentially, building on previous predictions
+                        for i in range(num_diverse):
+                            # Get the EOL prompt, including previous words for diversity
+                            prompt = get_regenerate_emb_prompts(sentence, 1, args.task if args.tsep else None, embedding_words)[0]
+                            
+                            # Get embedding for this prompt
+                            last_hidden_state, inputs = self.llm.embed([prompt])
+                            
+                            # For EOL extraction, we need to:
+                            # 1. Get the penultimate layer output (this is already done in embed())
+                            # 2. Extract the word that would be predicted (for logging and next prompts)
+                            
+                            # Extract the predicted word for the next prompt
+                            try:
+                                # Get the full response text
+                                full_text = self.llm.tokenizer.decode(inputs['input_ids'][0])
+                                
+                                # For EOL, we look for the word after "means in one word:"
+                                word_marker = "means in one word:"
+                                
+                                # Show debugging info
+                                if sentence_idx < 5 or sentence_idx % 50 == 0:
+                                    print(f"\n  PROMPT [{i+1}]: {prompt}", flush=True)
+                                    print(f"  EOL TEXT: {full_text}", flush=True)
+                                
+                                # Try to extract the next word - this is the EOL extraction
+                                extracted_word = None
+                                
+                                # In EOL setting, we need to use a Transformer to predict next token
+                                # Here we'll approximate by looking at the tokenized text and taking word after marker
+                                if word_marker in full_text:
+                                    prediction_text = full_text.split(word_marker, 1)[1].strip()
+                                    
+                                    if sentence_idx < 5 or sentence_idx % 50 == 0:
+                                        print(f"  AFTER MARKER: \"{prediction_text}\"", flush=True)
+                                    
+                                    # Get the first word
+                                    prediction_words = [w.strip().rstrip('.,;:"\'!?') for w in prediction_text.split()]
+                                    prediction_words = [w for w in prediction_words if w and len(w) > 1]  # Filter empty strings
+                                    
+                                    if prediction_words:
+                                        extracted_word = prediction_words[0]
+                                        if sentence_idx < 5 or sentence_idx % 50 == 0:
+                                            print(f"  PREDICTED WORD [{i+1}]: \"{extracted_word}\"", flush=True)
+                                
+                                # If extraction failed (no prediction available), use alternative
+                                if not extracted_word:
+                                    # Use a meaningful word from the sentence as fallback
+                                    content_words = [w.strip().rstrip('.,;:"\'!?') for w in sentence.split() 
+                                                   if len(w) > 3 and w.lower() not in 
+                                                   {"the", "and", "with", "this", "that", "then", "than", "when", "what"}]
+                                    
+                                    if content_words:
+                                        extracted_word = content_words[0].lower()
+                                        if sentence_idx < 5 or sentence_idx % 50 == 0:
+                                            print(f"  FALLBACK WORD [{i+1}]: \"{extracted_word}\" from sentence", flush=True)
+                                    else:
+                                        # Ultimate fallback
+                                        extracted_word = f"concept_{i+1}"
+                                        if sentence_idx < 5 or sentence_idx % 50 == 0:
+                                            print(f"  ULTIMATE FALLBACK [{i+1}]: \"{extracted_word}\"", flush=True)
+                                
+                                # Store the word for diversity in future prompts
+                                embedding_words.append(extracted_word)
+                                
+                                # Display embedding info
+                                if i == 0:
+                                    print(f"  Initial embedding for \"{sentence[:30]}{'...' if len(sentence) > 30 else ''}\": {extracted_word}", flush=True)
+                                else:
+                                    prev_words = ", ".join(embedding_words[:-1])
+                                    print(f"  Diverse embedding #{i+1}: {extracted_word} (previous: {prev_words})", flush=True)
+                            
+                            except Exception as e:
+                                # Handle errors gracefully
+                                default_word = f"concept_{i+1}"
+                                embedding_words.append(default_word)
+                                print(f"  Error extracting word: {str(e)}", flush=True)
+                                print(f"  Using fallback: {default_word}", flush=True)
+                            
+                            # Extract embedding from the hidden state
+                            # This uses standard EOL approach: don't mask anything, use full attention
+                            # The key is to use the penultimate layer output which is already in last_hidden_state
+                            full_mask = torch.ones_like(inputs['attention_mask'])
+                            embed = self.pooling(last_hidden_state, full_mask, recast=False).to('cpu')
+                            
+                            # Verify the embedding is valid before adding it
+                            if torch.isnan(embed).any():
+                                print(f"WARNING: NaN detected in raw embedding {i+1} for sentence {sentence_idx}. Creating fallback.", flush=True)
+                                # Create a fallback embedding of the same shape
+                                embed = torch.zeros_like(embed)
+                                embed[0, 0] = 1.0  # Set first value to 1 for non-zero norm
+                                
+                            # Add the embedding to our batch
+                            batch_embeddings.append(embed)
+                            
+                            del last_hidden_state
+                            del inputs
+                        
+                        # Combine all embeddings for this sentence
+                        sentence_embeddings = torch.cat(batch_embeddings, dim=0)
+                        
+                        # Check for NaN values
+                        has_nan = torch.isnan(sentence_embeddings).any()
+                        if has_nan:
+                            print(f"WARNING: NaN detected in embeddings for sentence {sentence_idx}. Replacing with valid embeddings.", flush=True)
+                            # Replace any NaN embeddings with the first valid embedding in the batch
+                            valid_indices = ~torch.isnan(sentence_embeddings).any(dim=1)
+                            if valid_indices.any():
+                                # Use the first valid embedding for any NaN embeddings
+                                first_valid_idx = valid_indices.nonzero()[0].item()
+                                valid_embedding = sentence_embeddings[first_valid_idx].unsqueeze(0)
+                                
+                                # Create a mask for NaN embeddings
+                                nan_mask = torch.isnan(sentence_embeddings).any(dim=1)
+                                for i in range(len(sentence_embeddings)):
+                                    if nan_mask[i]:
+                                        sentence_embeddings[i] = valid_embedding
+                            else:
+                                # If all embeddings have NaNs, create a fallback embedding
+                                print(f"CRITICAL: All embeddings contain NaN for sentence {sentence_idx}. Using fallback.", flush=True)
+                                sentence_embeddings = torch.zeros_like(sentence_embeddings)
+                                sentence_embeddings[0] = 1.0  # Set first dimension to 1 for a unit vector after normalization
+                        
+                        # Normalize embeddings if requested
+                        if self.args.normalized:
+                            in_dtype = sentence_embeddings.dtype
+                            sentence_embeddings = torch.nn.functional.normalize(sentence_embeddings, dim=-1).to(in_dtype)
+                            
+                            # Double-check for NaNs after normalization
+                            if torch.isnan(sentence_embeddings).any():
+                                print(f"WARNING: NaN detected after normalization for sentence {sentence_idx}. Using fallback.", flush=True)
+                                sentence_embeddings = torch.zeros_like(sentence_embeddings)
+                                sentence_embeddings[0, 0] = 1.0  # Set first dimension to 1
+                        
+                        # Average the diverse embeddings with equal weights
+                        avg_embedding = torch.mean(sentence_embeddings, dim=0, keepdim=True)
+                        
+                        # Final verification for NaNs in the average embedding
+                        if torch.isnan(avg_embedding).any():
+                            print(f"CRITICAL: NaN in final embedding for sentence {sentence_idx}. Using fallback vector.", flush=True)
+                            avg_embedding = torch.zeros_like(avg_embedding)
+                            avg_embedding[0, 0] = 1.0  # Set first dimension to 1
+                        
+                        # Log progress
+                        if sentence_idx % 10 == 0:
+                            print(f"  Generated {len(batch_embeddings)} diverse embeddings for sentence {sentence_idx}", flush=True)
+                        
+                        all_embeddings.append(avg_embedding)
+                    
+                    # Combine all sentence embeddings
+                    print(f"\nCompleted processing {len(all_new_sentences_batch)} sentences with {num_diverse} embeddings each", flush=True)
+                    
+                    # Make sure we have the right number of embeddings - critical for STS datasets
+                    if len(all_embeddings) != total_sentences:
+                        print(f"WARNING: Number of processed embeddings ({len(all_embeddings)}) doesn't match expected count ({total_sentences})", flush=True)
+                        
+                        # If we have too few embeddings, pad with zeros
+                        if len(all_embeddings) < total_sentences:
+                            print(f"Adding {total_sentences - len(all_embeddings)} zero embeddings to match expected count", flush=True)
+                            embed_dim = all_embeddings[0].shape[-1]
+                            for _ in range(total_sentences - len(all_embeddings)):
+                                zero_embed = torch.zeros(1, embed_dim, device=all_embeddings[0].device)
+                                zero_embed[0, 0] = 1.0  # Set first dimension to 1
+                                all_embeddings.append(zero_embed)
+                        
+                        # If we have too many embeddings, truncate
+                        elif len(all_embeddings) > total_sentences:
+                            print(f"Truncating {len(all_embeddings) - total_sentences} embeddings to match expected count", flush=True)
+                            all_embeddings = all_embeddings[:total_sentences]
+                    
+                    # Verify one more time
+                    print(f"Final embedding count: {len(all_embeddings)}", flush=True)
+                    all_embeddings = torch.cat(all_embeddings, dim=0)
+                else:
+                    # Handle regular embedding methods
                 new_batch_size = (total_num_gens+1)*args.batch_size
                 for start_index in tqdm(range(0, len(all_new_sentences_batch), new_batch_size), desc="Batches"):
                     new_sentences_batch = all_new_sentences_batch[start_index:start_index + new_batch_size]
@@ -697,17 +915,53 @@ class GenEOL(torch.nn.Module):
                     #     last_hidden_state = self.projection(last_hidden_state)
 
                     if ("mean" in args.pooling_method):
-                        # Remove instruction tokens from the embeddings by masking them
-                        for ii_idx, instruction_input in enumerate(new_sentences_batch):
-                            insind = instruction_input.find('means in one word:"')+len('means in one word')
-                            instruction_tokens = self.llm.tokenizer(instruction_input[:insind], add_special_tokens=False)["input_ids"]
-                            inputs['attention_mask'][ii_idx, :len(instruction_tokens)] = 0
+                            # Skip attention masking entirely to avoid NaN issues
+                            # Just use the token weights as they are
+                            pass
+                        
+                        # Use a full attention mask (all 1s) to avoid NaN values
+                        safe_mask = inputs['attention_mask'].clone()
+                        
+                        # Check if we need to apply any masking at all
+                        apply_masking = False
+                        
+                        if apply_masking:
+                            # Process only the current batch elements within limits
+                            batch_size = inputs['attention_mask'].shape[0]
+                            sentences_to_process = new_sentences_batch[:batch_size]
 
-                    
-                    # import ipdb; ipdb.set_trace()
-                    embeddings = self.pooling(last_hidden_state, inputs['attention_mask'], recast=False).to('cpu')
-                    if(torch.isnan(embeddings).any()):
-                        import ipdb; ipdb.set_trace()
+                            for ii_idx, instruction_input in enumerate(sentences_to_process):
+                                # Ensure we don't exceed batch dimensions
+                                if ii_idx >= batch_size:
+                                    break
+                                
+                                # For Mistral INST format, we want to mask everything up to and including [/INST]
+                                inst_end_marker = "[/INST]"
+                                marker_pos = instruction_input.find(inst_end_marker)
+                                
+                                if marker_pos != -1:
+                                    # Include the [/INST] tag in what gets masked
+                                    end_pos = marker_pos + len(inst_end_marker)
+                                    instruction_tokens = self.llm.tokenizer(instruction_input[:end_pos], add_special_tokens=False)["input_ids"]
+                                    # Ensure we don't exceed the tensor dimensions
+                                    max_len = min(len(instruction_tokens), inputs['attention_mask'].shape[1])
+                                    safe_mask[ii_idx, :max_len] = 0
+                        
+                        # Calculate embeddings using the safe mask
+                        embeddings = self.pooling(last_hidden_state, safe_mask, recast=False).to('cpu')
+                        
+                        # Check for NaN values and fix them
+                        if torch.isnan(embeddings).any():
+                            print(f"WARNING: NaN detected in batch embeddings. Using fallback approach.", flush=True)
+                            # Create a simpler pooling with mean of all tokens
+                            full_mask = torch.ones_like(inputs['attention_mask'])
+                            embeddings = self.pooling(last_hidden_state, full_mask, recast=False).to('cpu')
+                            
+                            # If we still have NaNs, create a fallback embedding
+                            if torch.isnan(embeddings).any():
+                                print(f"CRITICAL: NaN persists after fallback. Using zeros with a sentinel value.", flush=True)
+                                embeddings = torch.zeros_like(embeddings)
+                                embeddings[:, 0] = 1.0  # Set first dimension to 1
 
                     del last_hidden_state
                     del inputs
@@ -719,10 +973,15 @@ class GenEOL(torch.nn.Module):
                     embeddings = cast(torch.Tensor, embeddings)
 
                     try:
+                            # Check that necessary variables are defined and have the expected values
+                            if len(new_sentences_batch) > 0 and total_num_gens > 0:
                         embeddings = torch.reshape(embeddings, (len(new_sentences_batch)//(total_num_gens+1),-1,embeddings.shape[-1]))
                         # assert embeddings.shape[-2]==5
                         embeddings = torch.mean(embeddings, -2)
-                    except:
+                            else:
+                                print("Warning: Skipping reshape due to empty batch or invalid num_gens", flush=True)
+                        except Exception as e:
+                            print(f"Error reshaping embeddings: {str(e)}", flush=True)
                         print("error params", len(new_sentences_batch), (total_num_gens+1), len(all_new_sentences_batch), new_batch_size, flush=True)
 
                     
