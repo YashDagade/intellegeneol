@@ -14,15 +14,15 @@ models["mistralai/Mistral-7B-v0.1"]="mistral0.1"
 # models["meta-llama/Meta-Llama-3-8B"]="llama3"
 
 # Base directories and other parameters
-base_output_dir="./Nlogs/1014AB2_comp2_s5_mistralchat0.1_1_1_8"
-base_script="./scripts3/PromptEMB2_accelerate_mteb.sh"
+base_output_dir="./Nlogs/conv_div_s5_mistralchat0.1_1_1_8_April18"
+base_script="./scripts/PromptEMB_accelerate_mteb.sh"
 partition="compsci-gpu"
 array="0-8%10"
 gres="gpu:a5000:2"
 ntasks=2
 mem="40gb"
 model_1="mistralai/Mistral-7B-Instruct-v0.1"
-task_name="1014AB2_comp2"
+task_name="conv_div"
 session="s5"
 gpu_count=1
 task_per_node=8
@@ -42,7 +42,7 @@ for model_2 in "${!models[@]}"; do
       sbatch --partition=$partition --array=$array --gres=$gres --ntasks=$ntasks --mem=$mem \
              --output="${output_dir}/%03a.out" \
              $base_script $task_name $session $model_1 $model_2 $gpu_count $task_per_node \
-             --compositional --select $select_value --seed $seed
+             --conv_div --select $select_value --seed $seed
     done
   done
 done

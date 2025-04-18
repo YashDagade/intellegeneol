@@ -70,6 +70,10 @@ def get_args():
     parser.add_argument('--select', default=-1, type=int)
 
     parser.add_argument('--IB', default='e', type=str)
+    
+    # Add conv_div flag for Conversational Diversity approach
+    parser.add_argument('--conv_div', action='store_true', default=False, 
+                        help='Use Conversational Diversity approach with hierarchical clustering')
 
 
     args = parser.parse_args()

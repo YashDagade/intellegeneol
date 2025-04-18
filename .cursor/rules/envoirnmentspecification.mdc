@@ -1,0 +1,13 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+
+# Your rule content
+
+- You can @ files here
+- You can use markdown but dont have to
+
+
+I am in a custom envoirnment on a super computer so here you may not be able to use all the slurm commands in your tool calls. You will be able to do greq and such but no slurm commands so leave it up to me to do the slurm commands. 
